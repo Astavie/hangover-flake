@@ -36,20 +36,22 @@
 
     wineSources = import "${nixpkgs-wine}/pkgs/applications/emulators/wine/sources.nix" {inherit pkgs;};
 
-    gccAA64 = pkgs.pkgsCross.ucrtAarch64.buildPackages.clang;
-    gccX64 = pkgs.pkgsCross.ucrt64.buildPackages.clang;
-    gccX86 = pkgs.pkgsCross.mingw32.buildPackages.gcc;
+    ccAA64 = pkgs.pkgsCross.ucrtAarch64.buildPackages.clang;
+    ccX64 = pkgs.pkgsCross.mingwW64.buildPackages.gcc;
+    ccX86 = pkgs.pkgsCross.mingw32.buildPackages.gcc;
 
     wineBuildCfg = {
       inherit supportFlags;
       configureFlags = [
         "--disable-tests"
-        "--enable-archs=aarch64,i386"
+        "--enable-archs=aarch64,i386,x86_64"
+        "--with-mingw=clang"
+        "--enable-win64"
       ];
       mingwGccs = [
-        gccAA64
-        gccX64
-        gccX86
+        ccAA64
+        ccX64
+        ccX86
       ];
       platforms = ["aarch64-linux"];
       pkgArches = [pkgs];
@@ -63,8 +65,8 @@
     wineHangover = pkgs.callPackage "${nixpkgs-wine}/pkgs/applications/emulators/wine/base.nix" (
       lib.recursiveUpdate wineBuildCfg {
         pname = "wineHangover";
-        version = wineSources.unstable.version;
-        src = wineSources.unstable;
+        version = wineSources.stable.version;
+        src = wineSources.stable;
       }
     );
   in {
