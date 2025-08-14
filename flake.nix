@@ -13,8 +13,8 @@
     self,
     nixpkgs,
     nix-gaming,
-  }: let 
-    pkgs = import nixpkgs { 
+  }: let
+    pkgs = import nixpkgs {
       system = "aarch64-linux";
     };
     lib = nixpkgs.lib;
@@ -36,7 +36,7 @@
 
     wineSources = import "${nixpkgs-wine}/pkgs/applications/emulators/wine/sources.nix" {inherit pkgs;};
 
-    ccAA64 = (pkgs.overrideCC pkgs.llvmPackages.stdenv (pkgs.llvmPackages.stdenv.cc.override { inherit (pkgs.llvmPackages) bintools; })).cc;
+    ccAA64 = pkgs.pkgsCross.ucrtAarch64.buildPackages.clang;
     ccX64 = pkgs.pkgsCross.mingwW64.buildPackages.gcc;
     ccX86 = pkgs.pkgsCross.mingw32.buildPackages.gcc;
 
@@ -45,7 +45,6 @@
       configureFlags = [
         "--disable-tests"
         "--enable-archs=aarch64,i386,x86_64"
-        "--with-mingw=clang"
         "--enable-win64"
       ];
       mingwGccs = [
