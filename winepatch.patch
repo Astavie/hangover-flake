@@ -1,0 +1,74 @@
+diff --git a/tools/winegcc/winegcc.c b/tools/winegcc/winegcc.c
+index 374f754..41022eb 100644
+--- a/tools/winegcc/winegcc.c
++++ b/tools/winegcc/winegcc.c
+@@ -400,20 +400,23 @@ struct tool_names
+ {
+     const char *base;
+     const char *llvm_base;
++    const char *llvm_extra_flags;
+     const char *deflt;
+ };
+ 
+-static const struct tool_names tool_cc      = { "gcc",     "clang --driver-mode=gcc", CC };
+-static const struct tool_names tool_cxx     = { "g++",     "clang --driver-mode=g++", CXX };
+-static const struct tool_names tool_cpp     = { "cpp",     "clang --driver-mode=cpp", CPP };
+-static const struct tool_names tool_ld      = { "ld",      "ld.lld",                  LD };
+-static const struct tool_names tool_objcopy = { "objcopy", "llvm-objcopy" };
++static const struct tool_names tool_cc      = { "gcc",     "clang",        "--driver-mode=gcc", CC };
++static const struct tool_names tool_cxx     = { "g++",     "clang",        "--driver-mode=g++", CXX };
++static const struct tool_names tool_cpp     = { "cpp",     "clang",        "--driver-mode=cpp", CPP };
++static const struct tool_names tool_ld      = { "ld",      "ld.lld",       NULL,                LD };
++static const struct tool_names tool_objcopy = { "objcopy", "llvm-objcopy", NULL,                NULL};
+ 
+ static struct strarray build_tool_name( const char *target_name, struct tool_names tool )
+ {
+     const char *path, *str;
+     struct strarray ret;
++    bool targeted = false; 
+ 
++    /* first, try finding gcc */
+     if (target_name && target_version)
+         str = strmake( "%s-%s-%s", target_name, tool.base, target_version );
+     else if (target_name)
+@@ -425,17 +428,35 @@ static struct strarray build_tool_name( const char *target_name, struct tool_nam
+ 
+     if ((path = find_binary( str ))) return strarray_fromstring( path, " " );
+ 
+-    if (target_version)
+-        str = strmake( "%s-%s", tool.llvm_base, target_version );
++    /* find the clang cc next if it has a special prefix/suffix */
++    if (target_name && target_version) {
++        str = strmake( "%s-%s-%s", target_name, tool.llvm_base, target_version );
++	targeted = true;
++    }
++    else if (target_name) {
++        str = strmake( "%s-%s", target_name, tool.llvm_base );
++	targeted = true;
++    }
++    else if (target_version)
++        str = strmake("%s-%s", tool.llvm_base, target_version);
+     else
+-        str = tool.llvm_base;
++        str = NULL;
+ 
+-    if (!(path = find_binary( str ))) error( "Could not find %s\n", tool.base );
++    if (str) path = find_binary( str );
++    /* don't append `-target` later if we did create a targeted clang and we found one */
++    targeted = targeted && path != NULL;
+ 
++    /* finally, try finding generic clang */
++    if (!path && !(path = find_binary( tool.llvm_base ))) error( "Could not find %s\n", tool.base );
++
++    /* since we now have a path to a clang, give it extra flags to make it act like gcc */
+     ret = strarray_fromstring( path, " " );
++    if (tool.llvm_extra_flags) {
++        strarray_add( &ret, tool.llvm_extra_flags );
++    }
+     if (!strncmp( tool.llvm_base, "clang", 5 ))
+     {
+-        if (target_name)
++        if (target_name && !targeted)
+         {
+             strarray_add( &ret, "-target" );
+             strarray_add( &ret, target_name );
