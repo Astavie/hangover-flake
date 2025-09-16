@@ -37,6 +37,7 @@
     wineSources = import "${nixpkgs-wine}/pkgs/applications/emulators/wine/sources.nix" {inherit pkgs;};
 
     ccAA64 = (pkgs.pkgsCross.ucrtAarch64.buildPackages.clang_20.override {
+      // based on https://github.com/llvm/llvm-project/issues/110186
       inherit (pkgs.pkgsCross.ucrtAarch64.llvmPackages_20) bintools;
     });
     ccX64 = pkgs.pkgsCross.mingwW64.buildPackages.gcc;
@@ -70,6 +71,7 @@
         src = wineSources.unstable;
       }
     )).overrideAttrs {
+      // based on https://github.com/llvm/llvm-project/issues/149547
       NIX_CFLAGS_COMPILE="-momit-leaf-frame-pointer";
     };
   in {
