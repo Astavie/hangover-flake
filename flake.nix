@@ -37,7 +37,7 @@
     wineSources = import "${nixpkgs-wine}/pkgs/applications/emulators/wine/sources.nix" {inherit pkgs;};
 
     ccAA64 = (pkgs.pkgsCross.ucrtAarch64.buildPackages.clang_20.override {
-      inherit (pkgs.pkgsCross.ucrtAarch64.llvmPackages) bintools;
+      inherit (pkgs.pkgsCross.ucrtAarch64.llvmPackages_20) bintools;
     });
     ccX64 = pkgs.pkgsCross.mingwW64.buildPackages.gcc;
     ccX86 = pkgs.pkgsCross.mingw32.buildPackages.gcc;
