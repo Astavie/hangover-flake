@@ -38,7 +38,7 @@
 
     ccAA64 = (pkgs.pkgsCross.ucrtAarch64.buildPackages.clang_20.override {
       # based on https://github.com/llvm/llvm-project/issues/110186
-      inherit (pkgs.pkgsCross.ucrtAarch64.llvmPackages_20) bintools;
+      inherit (pkgs.llvmPackages_20) bintools;
     });
     ccX64 = pkgs.pkgsCross.mingwW64.buildPackages.gcc;
     ccX86 = pkgs.pkgsCross.mingw32.buildPackages.gcc;
