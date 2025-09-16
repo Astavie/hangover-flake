@@ -36,7 +36,9 @@
 
     wineSources = import "${nixpkgs-wine}/pkgs/applications/emulators/wine/sources.nix" {inherit pkgs;};
 
-    ccAA64 = pkgs.pkgsCross.ucrtAarch64.buildPackages.clang_20;
+    ccAA64 = (pkgs.pkgsCross.ucrtAarch64.buildPackages.clang_20.override {
+      inherit (pkgs.pkgsCross.ucrtAarch64.llvmPackages) bintools;
+    });
     ccX64 = pkgs.pkgsCross.mingwW64.buildPackages.gcc;
     ccX86 = pkgs.pkgsCross.mingw32.buildPackages.gcc;
 
@@ -61,13 +63,15 @@
       mainProgram = "wine";
     };
 
-    wineHangover = pkgs.callPackage "${nixpkgs-wine}/pkgs/applications/emulators/wine/base.nix" (
+    wineHangover = (pkgs.callPackage "${nixpkgs-wine}/pkgs/applications/emulators/wine/base.nix" (
       lib.recursiveUpdate wineBuildCfg {
         pname = "wineHangover";
         version = wineSources.unstable.version;
         src = wineSources.unstable;
       }
-    );
+    )).overrideAttrs {
+      NIX_CFLAGS_COMPILE="-momit-leaf-frame-pointer"
+    };
   in {
     packages.aarch64-linux = rec {
       inherit wineHangover;
