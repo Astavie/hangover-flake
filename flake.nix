@@ -70,7 +70,7 @@
         src = wineSources.unstable;
       }
     )).overrideAttrs {
-      NIX_CFLAGS_COMPILE="-momit-leaf-frame-pointer"
+      NIX_CFLAGS_COMPILE="-momit-leaf-frame-pointer";
     };
   in {
     packages.aarch64-linux = rec {
