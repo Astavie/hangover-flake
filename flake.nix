@@ -36,10 +36,7 @@
 
     wineSources = import "${nixpkgs-wine}/pkgs/applications/emulators/wine/sources.nix" {inherit pkgs;};
 
-    ccAA64 = (pkgs.overrideCC pkgs.pkgsCross.ucrtAarch64.stdenv (pkgs.pkgsCross.ucrtAarch64.stdenv.cc.override {
-      # based on https://github.com/llvm/llvm-project/issues/110186
-      inherit (pkgs.llvmPackages_20) bintools; 
-    })).clang_20;
+    ccAA64 = pkgs.pkgsCross.ucrtAarch64.buildPackages.llvmPackages_20.clangUseLLVM;
     ccX64 = pkgs.pkgsCross.mingwW64.buildPackages.gcc;
     ccX86 = pkgs.pkgsCross.mingw32.buildPackages.gcc;
 
