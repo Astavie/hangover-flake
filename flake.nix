@@ -36,14 +36,13 @@
 
     wineSources = import "${nixpkgs-wine}/pkgs/applications/emulators/wine/sources.nix" {inherit pkgs;};
 
-    ccAA64 = (pkgs.overrideCC pkgs.llvmPackages.stdenv (pkgs.llvmPackages.stdenv.cc.override { inherit (pkgs.llvmPackages) bintools; })).cc;
+    ccAA64 = pkgs.pkgsCross.ucrtAarch64.buildPackages.clang_20;
 
     wineBuildCfg = {
       inherit supportFlags;
       configureFlags = [
         "--disable-tests"
         "--enable-archs=aarch64"
-        "--with-mingw=clang"
         "--enable-win64"
       ];
       mingwGccs = [
@@ -67,6 +66,8 @@
     )).overrideAttrs {
       # based on https://github.com/llvm/llvm-project/issues/149547
       NIX_CFLAGS_COMPILE="-momit-leaf-frame-pointer";
+      # based on https://github.com/llvm/llvm-project/issues/110186
+      makeFlags = [ "AR=llvm-ar" ];
     };
   in {
     packages.aarch64-linux = rec {
