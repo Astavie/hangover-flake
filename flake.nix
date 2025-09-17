@@ -32,11 +32,11 @@
     };
 
     # good enough
-    supportFlags = (import "${nix-gaming}/pkgs/wine/supportFlags.nix").full;
+    supportFlags = (import "${nix-gaming}/pkgs/wine/supportFlags.nix").full // {
+      supportMingw = false;
+    };
 
     wineSources = import "${nixpkgs-wine}/pkgs/applications/emulators/wine/sources.nix" {inherit pkgs;};
-
-    ccAA64 = pkgs.pkgsCross.ucrtAarch64.buildPackages.clang_20;
 
     wineBuildCfg = {
       inherit supportFlags;
@@ -45,9 +45,7 @@
         "--enable-archs=aarch64"
         "--enable-win64"
       ];
-      mingwGccs = [
-        ccAA64
-      ];
+      mingwGccs = [];
       platforms = ["aarch64-linux"];
       pkgArches = [pkgs];
       geckos = [];
@@ -66,8 +64,6 @@
     )).overrideAttrs {
       # based on https://github.com/llvm/llvm-project/issues/149547
       NIX_CFLAGS_COMPILE="-momit-leaf-frame-pointer";
-      # based on https://github.com/llvm/llvm-project/issues/110186
-      makeFlags = [ "AR=llvm-ar" ];
     };
   in {
     packages.aarch64-linux = rec {
