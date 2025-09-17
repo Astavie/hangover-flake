@@ -36,13 +36,14 @@
 
     wineSources = import "${nixpkgs-wine}/pkgs/applications/emulators/wine/sources.nix" {inherit pkgs;};
 
-    ccAA64 = pkgs.pkgsCross.ucrtAarch64.buildPackages.clang_20;
+    ccAA64 = (pkgs.overrideCC pkgs.llvmPackages.stdenv (pkgs.llvmPackages.stdenv.cc.override { inherit (pkgs.llvmPackages) bintools; })).cc;
 
     wineBuildCfg = {
       inherit supportFlags;
       configureFlags = [
         "--disable-tests"
         "--enable-archs=aarch64"
+        "--with-mingw=clang"
         "--enable-win64"
       ];
       mingwGccs = [
